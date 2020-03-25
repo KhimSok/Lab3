@@ -1,0 +1,259 @@
+# Group member:
+# Cassandra Harkins
+# Khim Sok
+# Lab2
+# Due: 3/26/2020
+
+#!/usr/bin/env python3
+#!c:/Python35/python3.exe -u
+
+import asyncio
+import sys
+import cv2
+import numpy as np
+import cozmo
+import time
+import os
+import cozmo.audio
+import cozmo.util
+from cozmo.util import degrees, distance_inches, speed_mmps, Angle
+from cozmo.objects import CustomObject, CustomObjectMarkers, CustomObjectTypes
+from glob import glob
+import fysom
+from fysom import *
+import tracemalloc
+
+try:
+    from PIL import Image
+except ImportError:
+    sys.exit("Cannot import from PIL: Do `pip3 install --user Pillow` to install")
+
+# ===============================================================================================
+# FACE 1 and 2
+# ===============================================================================================
+def face1(robot: cozmo.robot.Robot):
+
+    image = Image.open("SDK_4Circles.png")
+    image = image.resize(cozmo.oled_face.dimensions(), Image.NEAREST)
+    image = cozmo.oled_face.convert_image_to_screen_data(image)
+
+    seconds = 10
+
+    for nothing in range(seconds):
+        robot.display_oled_face_image(image, 1000.0)
+
+def face2(robot: cozmo.robot.Robot):
+    
+    image = Image.open("SDK_4Diamonds.png")
+    image = image.resize(cozmo.oled_face.dimensions(), Image.NEAREST)
+    image = cozmo.oled_face.convert_image_to_screen_data(image)
+
+    seconds = 10
+
+    for nothing in range(seconds):
+        robot.display_oled_face_image(image, 1000.0)
+# ===============================================================================================
+        
+
+
+
+    # current_directory = os.path.dirname(os.path.realpath(__file__))
+    # # get_in_position(robot)
+    # cubeOne = os.path.join(current_directory, "SDK_4Circles.png")
+    # cubeTwo = os.path.join(current_directory, "SDK_4Diamonds.png")
+
+    # # load some images and convert them for display cozmo's face
+    # image_settings = [(cubeOne, Image.BICUBIC),
+    #                   (cubeTwo, Image.NEAREST)]
+    # face_images = []
+    # for image_name, resampling_mode in image_settings:
+    #     image = Image.open(image_name)
+
+    # # resize to fit on Cozmo's face screen
+    # resized_image = image.resize(cozmo.oled_face.dimensions(), resampling_mode)
+
+    # # convert the image to the format used by the oled screen
+    # face_image = cozmo.oled_face.convert_image_to_screen_data(resized_image, invert_image=True)
+    # face_images.append(face_image)
+
+    # num_loops = 10
+    # duration_s = 2.0
+
+    # print("Press CTRL-C to quit (or wait %s seconds to complete)" % int(num_loops*duration_s) )
+
+    # for _ in range(num_loops):
+    #     for image in face_images:
+    #         robot.display_oled_face_image(image, duration_s * 1000.0)
+    #         # time.sleep(duration_s)
+            
+# ===============================================================================================
+# ===============================================================================================
+
+def on_search(e):
+    print("searching")
+
+def on_move(e):
+    print("moving")
+    
+def on_arrive(e):
+    print("arrived")
+
+# ===============================================================================================
+# BoxAnnotator
+# ===============================================================================================
+# Define a decorator as a subclass of Annotator; displays the keypoint
+class BoxAnnotator(cozmo.annotate.Annotator):
+    cube = None
+        
+    def apply(self, image, scale):
+        d = ImageDraw.Draw(image)
+        bounds = (0, 0, image.width, image.height)
+        width = image.width
+        
+        if BoxAnnotator.cube is not None:
+
+            #double size of bounding box to match size of rendered image
+            BoxAnnotator.cube = np.multiply(BoxAnnotator.cube,2)
+
+            #define and display bounding box with params:
+            #msg.img_topLeft_x, msg.img_topLeft_y, msg.img_width, msg.img_height
+            box = cozmo.util.ImageBox(BoxAnnotator.cube[0]-BoxAnnotator.cube[2]/2,
+                                      BoxAnnotator.cube[1]-BoxAnnotator.cube[2]/2,
+                                      BoxAnnotator.cube[2], BoxAnnotator.cube[2])
+            cozmo.annotate.add_img_box_to_image(image, box, "green", text=None)
+
+            BoxAnnotator.cube = None
+# ===============================================================================================
+# RUN PROGRAM == MAIN
+# ===============================================================================================
+def run(robot: cozmo.robot.Robot):
+
+            robot.camera.image_stream_enabled = True
+            robot.camera.color_image_enabled = True
+            robot.camera.enable_auto_exposure = True
+
+            gain,exposure,mode = 390,3,1
+
+            # if mode == 1:
+            #         robot.camera.enable_auto_exposure = True
+            # else:
+            #     robot.camera.set_manual_exposure(exposure,fixed_gain)
+
+    # try:
+    #     while True:
+            
+
+    # def distance_from(p0, p1):
+    #         # return distance between p0 and p1
+    #         return 0 # placeholder value
+
+    # async def on_search(e):
+    #     # no need for a call to move() here since searching will be interrupted
+    #     # by handle_object_appeared callback
+    #     if e.src is not e.dst:
+    #         print(f'Searching for cube {e.args[0]}')
+    #     robot.play_audio(cozmo.audio.AudioEvents.SfxGameWin)
+    #     await robot.turn_in_place(degrees(5)).wait_for_completed()
+        
+    # async def on_move(e):
+    #     if e.src is not e.dst:
+    #         print(f'Moving to cube {e.args[0]}')
+    #         robot.play_audio(cozmo.audio.AudioEvents.SfxGameWin)
+    #     targ = e.args[0]
+    #     if distance_from(targ, robot) < 1:
+    #         e.fsm.arrive() # transition to arrive state
+    #     else:
+    #         cubePose = targ.pose
+    #         # calculate angle and distance required to travel
+    #         ang, dist = 0, 0 # placeholder values
+    #         await robot.turn_in_place(degrees(ang)).wait_for_completed()
+    #         # drive straight (dist)
+    #         # await ...
+        
+    # def on_arrive(e):
+    #     if e.src is not e.dst:
+    #         print(f'Arrived at cube {e.args[0]}')
+    #         robot.play_audio(cozmo.audio.AudioEvents.SfxGameWin)
+    #     if not curCubeNum:
+    #         curCubeNum = 1
+    #         e.fsm.search()
+
+
+            FSM = Fysom({
+                'final': 'arrive2',
+                'events': [                    
+                    {'name': 'search', 'src': 'none', 'dst': 'search1'},
+                    {'name': 'search', 'src': 'search1', 'dst': 'search1'},
+                    {'name': 'search', 'src': 'arrive1', 'dst': 'search2'},
+                    {'name': 'search', 'src': 'search2', 'dst': 'search2'},
+                    {'name': 'search', 'src': 'move1', 'dst': 'search1'},
+                    {'name': 'search', 'src': 'move2', 'dst': 'search2'},
+                    {'name': 'move', 'src': 'search1', 'dst': 'move1'},
+                    {'name': 'move', 'src': 'search2', 'dst': 'move2'},
+                    {'name': 'arrive', 'src': 'move1', 'dst': 'arrive1'},
+                    {'name': 'arrive', 'src': 'move2', 'dst': 'arrive2'}
+                ],
+                'callbacks': {
+                    'on_search': on_search, # runs after all FSM.search(...) calls
+                    'on_move': on_move,     # runs after all FSM.move(...) calls
+                    'on_arrive': on_arrive  # runs after all FSM.arrive(...) calls
+                }
+            })
+
+            def handle_object_appeared(evt, **kw):
+            # This will be called whenever an EvtObjectAppeared is dispatched -
+            # whenever an Object comes into view.
+                if isinstance(evt.obj, CustomObject):
+                    print("I see cube")
+                    FSM.move()
+                    print("and I see ", evt.obj)
+                    print(FSM.current)
+                    if FSM.current == 'move1':
+                        face1(robot)
+                    if FSM.current == 'move2':
+                        face2(robot)
+                    # e.args[0]
+                    # robot.drive_straight(distance_inches(2), speed_mmps(20))
+                    # robot.drive_wheels(l_wheel_speed=20, r_wheel_speed=20, duration=5)
+                    # print("Cozmo started seeing a %s" % str(evt.obj.object_type))
+                    
+
+            def handle_object_disappeared(evt, **kw):
+            # This will be called whenever an EvtObjectDisappeared is dispatched -
+            # whenever an Object goes out of view.
+                if isinstance(evt.obj, CustomObject):
+                    print("I don't see cube")
+                    FSM.search()
+                    print(FSM.current)
+                    # robot.turn_in_place(degrees(5))
+                
+
+            robot.add_event_handler(cozmo.objects.EvtObjectAppeared, handle_object_appeared)
+            robot.add_event_handler(cozmo.objects.EvtObjectDisappeared, handle_object_disappeared)
+
+            cube1 = robot.world.define_custom_cube(CustomObjectTypes.CustomType02, 
+                                                 CustomObjectMarkers.Circles4, 44, 30, 30, True)
+
+            cube2 = robot.world.define_custom_cube(CustomObjectTypes.CustomType06, 
+                                                 CustomObjectMarkers.Diamonds4, 44, 30, 30, True)
+
+            time.sleep(20)
+            
+
+    # def printstatechange(e):
+    #     print(f'event: %s, src: %s, dst: %s' % (e.event, e.src, e.dst))
+    
+    # FSM.onchangestate = printstatechange
+    
+                # custom_objects(robot)
+        
+
+    # except KeyboardInterrupt:
+    #     print("")
+    #     print("Exit requested by user")
+    # except cozmo.RobotBusy as e:
+    #     print(e)
+    # cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    cozmo.run_program(run, use_viewer = True, force_viewer_on_top = True)
