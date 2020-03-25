@@ -91,9 +91,11 @@ def face2(robot: cozmo.robot.Robot):
 
 def on_search(e):
     print("searching")
+    robot.turn_in_place(degrees(5))
 
 def on_move(e):
     print("moving")
+    robot.drive_straight(distance_inches(2), speed_mmps(20))
     
 def on_arrive(e):
     print("arrived")
@@ -213,7 +215,6 @@ def run(robot: cozmo.robot.Robot):
                     if FSM.current == 'move2':
                         face2(robot)
                     # e.args[0]
-                    robot.drive_straight(distance_inches(2), speed_mmps(20))
                     # robot.drive_wheels(l_wheel_speed=20, r_wheel_speed=20, duration=5)
                     # print("Cozmo started seeing a %s" % str(evt.obj.object_type))
                     
@@ -225,7 +226,7 @@ def run(robot: cozmo.robot.Robot):
                     print("I don't see cube")
                     FSM.search()
                     print(FSM.current)
-                    robot.turn_in_place(degrees(5))
+                    
                 
 
             robot.add_event_handler(cozmo.objects.EvtObjectAppeared, handle_object_appeared)
