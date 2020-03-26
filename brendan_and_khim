@@ -1,5 +1,5 @@
 # Group member:
-# Cassandra Harkins
+# Brendan Clarke
 # Khim Sok
 # Lab2
 # Due: 3/26/2020
@@ -89,13 +89,13 @@ def face2(robot: cozmo.robot.Robot):
 # ===============================================================================================
 # ===============================================================================================
 
-def on_search(e):
+def on_search():
     print("searching")
 
-def on_move(e):
+def on_move():
     print("moving")
     
-def on_arrive(e):
+def on_arrive():
     print("arrived")
 
 # ===============================================================================================
@@ -205,16 +205,17 @@ def run(robot: cozmo.robot.Robot):
             # whenever an Object comes into view.
                 if isinstance(evt.obj, CustomObject):
                     print("I see cube")
-                    print("and I see ", evt.obj)
-                    FSM.move()
-                    robot.drive_straight(distance_inches(2), speed_mmps(20))
-                    print(FSM.current)
-                    if FSM.current == 'move1':
-                        face1(robot)
-                    if FSM.current == 'move2':
-                        face2(robot)
-                    # e.args[0]
-                    
+                    # print("Cozmo started seeing a %s" % str(evt.obj.pose))
+                    pose = evt.obj.pose
+                    print("my pose is", pose)
+                    # FSM.move()
+                    # print(FSM.current)
+                    # if FSM.current == 'move1':
+                    #     face1(robot)
+                    # if FSM.current == 'move2':
+                    #     face2(robot)
+                    # # e.args[0]
+                    # robot.drive_straight(distance_inches(2), speed_mmps(20))
                     # robot.drive_wheels(l_wheel_speed=20, r_wheel_speed=20, duration=5)
                     # print("Cozmo started seeing a %s" % str(evt.obj.object_type))
                     
@@ -224,9 +225,9 @@ def run(robot: cozmo.robot.Robot):
             # whenever an Object goes out of view.
                 if isinstance(evt.obj, CustomObject):
                     print("I don't see cube")
-                    FSM.search()
-                    print(FSM.current)
-                    robot.turn_in_place(degrees(5))
+                    # FSM.search()
+                    # print(FSM.current)
+                    # robot.turn_in_place(degrees(5))
                 
 
             robot.add_event_handler(cozmo.objects.EvtObjectAppeared, handle_object_appeared)
