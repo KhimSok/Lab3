@@ -37,10 +37,10 @@ def face1(robot: cozmo.robot.Robot):
     image = image.resize(cozmo.oled_face.dimensions(), Image.NEAREST)
     image = cozmo.oled_face.convert_image_to_screen_data(image)
 
-    seconds = 10
+    seconds = 1
 
     for nothing in range(seconds):
-        robot.display_oled_face_image(image, 1000.0)
+        robot.display_oled_face_image(image, 1000.0).wait_for_completed()
 
 def face2(robot: cozmo.robot.Robot):
     
@@ -48,14 +48,34 @@ def face2(robot: cozmo.robot.Robot):
     image = image.resize(cozmo.oled_face.dimensions(), Image.NEAREST)
     image = cozmo.oled_face.convert_image_to_screen_data(image)
 
-    seconds = 10
+    seconds = 1
 
     for nothing in range(seconds):
-        robot.display_oled_face_image(image, 1000.0)
+        robot.display_oled_face_image(image, 1000.0).wait_for_completed()
+
 # ===============================================================================================
-        
+# GET IN POSITION
+# ===============================================================================================
+def get_in_position(robot: cozmo.robot.Robot):
+        robot.set_head_angle(degrees(0)).wait_for_completed()
+        robot.set_lift_height(0).wait_for_completed()
+# ===============================================================================================
+# FSM STATE CHANGE
+# ===============================================================================================        
+def on_search():
+    print("searching")
+    # robot.turn_in_place(degrees(5))
+    # time.sleep(1.0)
 
-
+def on_move():
+    print("moving")
+    # robot.drive_straight(distance_inches(2), speed_mmps(20))
+    # time.sleep(2.0)
+    
+def on_arrive():
+    print("arrived")
+    # robot.say_text("I am arrive").wait_for_completed()
+# ===============================================================================================
 
     # current_directory = os.path.dirname(os.path.realpath(__file__))
     # # get_in_position(robot)
@@ -86,99 +106,58 @@ def face2(robot: cozmo.robot.Robot):
     #         robot.display_oled_face_image(image, duration_s * 1000.0)
     #         # time.sleep(duration_s)
             
-# ===============================================================================================
-# ===============================================================================================
 
-def on_search():
-    print("searching")
-
-def on_move():
-    print("moving")
-    
-def on_arrive():
-    print("arrived")
 
 # ===============================================================================================
 # BoxAnnotator
 # ===============================================================================================
 # Define a decorator as a subclass of Annotator; displays the keypoint
-class BoxAnnotator(cozmo.annotate.Annotator):
-    cube = None
+# class BoxAnnotator(cozmo.annotate.Annotator):
+#     cube = None
         
-    def apply(self, image, scale):
-        d = ImageDraw.Draw(image)
-        bounds = (0, 0, image.width, image.height)
-        width = image.width
+#     def apply(self, image, scale):
+#         d = ImageDraw.Draw(image)
+#         bounds = (0, 0, image.width, image.height)
+#         width = image.width
         
-        if BoxAnnotator.cube is not None:
+#         if BoxAnnotator.cube is not None:
 
-            #double size of bounding box to match size of rendered image
-            BoxAnnotator.cube = np.multiply(BoxAnnotator.cube,2)
+#             #double size of bounding box to match size of rendered image
+#             BoxAnnotator.cube = np.multiply(BoxAnnotator.cube,2)
 
-            #define and display bounding box with params:
-            #msg.img_topLeft_x, msg.img_topLeft_y, msg.img_width, msg.img_height
-            box = cozmo.util.ImageBox(BoxAnnotator.cube[0]-BoxAnnotator.cube[2]/2,
-                                      BoxAnnotator.cube[1]-BoxAnnotator.cube[2]/2,
-                                      BoxAnnotator.cube[2], BoxAnnotator.cube[2])
-            cozmo.annotate.add_img_box_to_image(image, box, "green", text=None)
+#             #define and display bounding box with params:
+#             #msg.img_topLeft_x, msg.img_topLeft_y, msg.img_width, msg.img_height
+#             box = cozmo.util.ImageBox(BoxAnnotator.cube[0]-BoxAnnotator.cube[2]/2,
+#                                       BoxAnnotator.cube[1]-BoxAnnotator.cube[2]/2,
+#                                       BoxAnnotator.cube[2], BoxAnnotator.cube[2])
+#             cozmo.annotate.add_img_box_to_image(image, box, "green", text=None)
 
-            BoxAnnotator.cube = None
+#             BoxAnnotator.cube = None
+
+
+# ***********************************************************************************************
 # ===============================================================================================
 # RUN PROGRAM == MAIN
 # ===============================================================================================
+# ***********************************************************************************************
 def run(robot: cozmo.robot.Robot):
 
-            robot.camera.image_stream_enabled = True
-            robot.camera.color_image_enabled = True
-            robot.camera.enable_auto_exposure = True
+    robot.camera.image_stream_enabled = True
+    robot.camera.color_image_enabled = True
+    robot.camera.enable_auto_exposure = True
 
-            gain,exposure,mode = 390,3,1
+    gain,exposure,mode = 390,3,1
 
-            # if mode == 1:
-            #         robot.camera.enable_auto_exposure = True
-            # else:
-            #     robot.camera.set_manual_exposure(exposure,fixed_gain)
+    get_in_position(robot)
 
-    # try:
-    #     while True:
+    if mode == 1:
+        robot.camera.enable_auto_exposure = True
+    else:
+         robot.camera.set_manual_exposure(exposure,fixed_gain)
+
+    try:
+        # while True:
             
-
-    # def distance_from(p0, p1):
-    #         # return distance between p0 and p1
-    #         return 0 # placeholder value
-
-    # async def on_search(e):
-    #     # no need for a call to move() here since searching will be interrupted
-    #     # by handle_object_appeared callback
-    #     if e.src is not e.dst:
-    #         print(f'Searching for cube {e.args[0]}')
-    #     robot.play_audio(cozmo.audio.AudioEvents.SfxGameWin)
-    #     await robot.turn_in_place(degrees(5)).wait_for_completed()
-        
-    # async def on_move(e):
-    #     if e.src is not e.dst:
-    #         print(f'Moving to cube {e.args[0]}')
-    #         robot.play_audio(cozmo.audio.AudioEvents.SfxGameWin)
-    #     targ = e.args[0]
-    #     if distance_from(targ, robot) < 1:
-    #         e.fsm.arrive() # transition to arrive state
-    #     else:
-    #         cubePose = targ.pose
-    #         # calculate angle and distance required to travel
-    #         ang, dist = 0, 0 # placeholder values
-    #         await robot.turn_in_place(degrees(ang)).wait_for_completed()
-    #         # drive straight (dist)
-    #         # await ...
-        
-    # def on_arrive(e):
-    #     if e.src is not e.dst:
-    #         print(f'Arrived at cube {e.args[0]}')
-    #         robot.play_audio(cozmo.audio.AudioEvents.SfxGameWin)
-    #     if not curCubeNum:
-    #         curCubeNum = 1
-    #         e.fsm.search()
-
-
             FSM = Fysom({
                 'final': 'arrive2',
                 'events': [                    
@@ -204,10 +183,24 @@ def run(robot: cozmo.robot.Robot):
             # This will be called whenever an EvtObjectAppeared is dispatched -
             # whenever an Object comes into view.
                 if isinstance(evt.obj, CustomObject):
-                    print("I see cube")
+                    print("I see cube")   
+                    robot.drive_straight(distance_inches(1), speed_mmps(20))           
+                    # if (FSM.current == "search1"):
+                    #     # robot.drive_straight(distance_inches(2), speed_mmps(20)).wait_for_completed()
+                    #     FSM.move()
+                    #     FSM.arrive()
+                    # elif (FSM.current == "search2"):
+                    #     # face2(robot)
+                    #     # robot.drive_straight(distance_inches(2), speed_mmps(20)).wait_for_completed()
+                    #     FSM.move()
+                    #     FSM.arrive()                    
+
+
+                    # print("Cozmo started seeing a %s" % str(evt.obj.object_type))
                     # print("Cozmo started seeing a %s" % str(evt.obj.pose))
-                    pose = evt.obj.pose
-                    print("my pose is", pose)
+
+                    # pose = evt.obj.pose
+                    # print("my pose is", pose)
                     # FSM.move()
                     # print(FSM.current)
                     # if FSM.current == 'move1':
@@ -225,7 +218,15 @@ def run(robot: cozmo.robot.Robot):
             # whenever an Object goes out of view.
                 if isinstance(evt.obj, CustomObject):
                     print("I don't see cube")
-                    # FSM.search()
+                    # face1()
+                    # face2()
+                    robot.turn_in_place(degrees(5))
+                    # if FSM.current == "none":
+                    #     robot.turn_in_place(degrees(5))
+                    #     FSM.search()
+                    # if FSM.current == "search2":
+                    #     robot.turn_in_place(degrees(5))
+                    #     FSM.search()
                     # print(FSM.current)
                     # robot.turn_in_place(degrees(5))
                 
@@ -237,25 +238,23 @@ def run(robot: cozmo.robot.Robot):
                                                  CustomObjectMarkers.Circles4, 44, 30, 30, True)
 
             cube2 = robot.world.define_custom_cube(CustomObjectTypes.CustomType06, 
-                                                 CustomObjectMarkers.Diamonds4, 44, 30, 30, True)
+                                                 CustomObjectMarkers.Diamonds4, 44, 30, 30, True)    
 
-            time.sleep(20)
-            
+            time.sleep(25)        
 
     # def printstatechange(e):
     #     print(f'event: %s, src: %s, dst: %s' % (e.event, e.src, e.dst))
     
     # FSM.onchangestate = printstatechange
     
-                # custom_objects(robot)
-        
-
-    # except KeyboardInterrupt:
-    #     print("")
-    #     print("Exit requested by user")
-    # except cozmo.RobotBusy as e:
-    #     print(e)
-    # cv2.destroyAllWindows()
+            # custom_objects(robot)
+            
+    
+    except KeyboardInterrupt:
+        print("")
+        print("Exit requested by user")
+    except cozmo.RobotBusy as e:
+        print(e)
 
 if __name__ == '__main__':
     cozmo.run_program(run, use_viewer = True, force_viewer_on_top = True)
